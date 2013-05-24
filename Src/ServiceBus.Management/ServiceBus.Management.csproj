@@ -132,7 +132,12 @@
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceBus.Management.Lucene.Analyzers\ServiceBus.Management.Lucene.Analyzers.csproj">
+      <Project>{6b4bd8f7-3484-4f9f-9230-1d24c53ee6d7}</Project>
+      <Name>ServiceBus.Management.Lucene.Analyzers</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

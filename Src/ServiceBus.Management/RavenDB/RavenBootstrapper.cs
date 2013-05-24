@@ -1,7 +1,9 @@
 ﻿namespace ServiceBus.Management.RavenDB
 {
+    using System;
     using System.Diagnostics;
     using System.IO;
+    using Lucene.Analyzers;
     using NServiceBus;
     using NServiceBus.Logging;
     using Raven.Client;
@@ -31,6 +33,9 @@
 
             documentStore.Initialize();
 
+            var customAnalyzer = typeof (NGramAnalyzer).Assembly.Location;
+            File.Copy(customAnalyzer, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Analyzers", Path.GetFileName(customAnalyzer)), true);
+            
             var sw = new Stopwatch();
 
             sw.Start();

@@ -2,7 +2,7 @@ namespace ServiceBus.Management.RavenDB.Indexes
 {
     using System;
     using System.Linq;
-    using Lucene.Net.Analysis.Standard;
+    using Lucene.Analyzers;
     using Raven.Abstractions.Indexing;
     using Raven.Client.Indexes;
 
@@ -34,7 +34,7 @@ namespace ServiceBus.Management.RavenDB.Indexes
             Index(x => x.Query, FieldIndexing.Analyzed);
             Index(x => x.ReceivingEndpoint, FieldIndexing.Default);
 
-            Analyze(x => x.Query, typeof(StandardAnalyzer).AssemblyQualifiedName);
+            Analyze(x => x.Query, typeof(NGramAnalyzer).AssemblyQualifiedName);
         }
     }
 }
