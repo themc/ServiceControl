@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using Contracts.MessageFailures;
     using Contracts.Operations;
     using NServiceBus;
     using Raven.Abstractions.Exceptions;
@@ -11,6 +12,7 @@
 
     class ErrorMessageHandler : IHandleMessages<ErrorMessageReceived>
     {
+        public IBus Bus { get; set; }
         public IDocumentStore Store { get; set; }
         
         public void Handle(ErrorMessageReceived message)
@@ -29,8 +31,14 @@
                 try
                 {
                     session.Store(failedMessage);
-
                     session.SaveChanges();
+                    Bus.Publish<MessageFailed>(m =>
+                    {
+                        m.Id = failedMessage.Id;
+                        m.Endpoint = failedMessage.OriginatingEndpoint.Name;
+                        m.Machine = failedMessage.OriginatingEndpoint.Machine;
+                        m.FailedAt = failedMessage.TimeSent;
+                    });
                 }
                 catch (ConcurrencyException) //there is already a message in the store with the same id
                 {

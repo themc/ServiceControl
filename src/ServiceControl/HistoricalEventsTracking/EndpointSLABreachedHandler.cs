@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.Alerts
+﻿namespace ServiceControl.HistoricalEventsTracking
 {
     using System;
     using NServiceBus;
@@ -8,6 +8,7 @@
     {
         public void Handle(EndpointSLABreached message)
         {
+            // TODO: Create a new EndpointEvent from the event received and store this in raven.
             Console.Out.WriteLine("Demo - SLA breached for endpoint {0}", message.Endpoint);
         }
     }
