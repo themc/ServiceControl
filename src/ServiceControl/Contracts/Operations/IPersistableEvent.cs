@@ -1,9 +1,8 @@
-﻿namespace ServiceControl.Contracts.HistoricalEvents
+﻿namespace ServiceControl.Contracts.Operations
 {
-    using NServiceBus;
     using System;
 
-    public interface IEventReceived : IEvent
+    public interface IPersistableEvent
     {
         string Id { get; set; }
         DateTime RaisedAt { get; set; }

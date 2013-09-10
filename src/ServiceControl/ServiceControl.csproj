@@ -166,14 +166,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Contracts\HistoricalEvents\EventReceived.cs" />
+    <Compile Include="Contracts\Operations\IPersistableEvent.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailed.cs" />
-    <Compile Include="HistoricalEventsTracking\EndpointFailedHeartbeatHandler.cs" />
-    <Compile Include="HistoricalEventsTracking\EndpointSLABreachedHandler.cs" />
     <Compile Include="BusinessMonitoring\ApiModule.cs" />
     <Compile Include="BusinessMonitoring\EndpointPerformanceDataReceivedHandler.cs" />
-    <Compile Include="Contracts\HistoricalEvents\EventCleared.cs" />
-    <Compile Include="HistoricalEventsTracking\EndpointEvent.cs" />
     <Compile Include="Contracts\BusinessMonitoring\EndpointSLABreached.cs" />
     <Compile Include="BusinessMonitoring\EndpointSLAMonitoring.cs" />
     <Compile Include="Contracts\HeartbeatMonitoring\EndpointFailedToHeartbeat.cs" />
@@ -187,7 +183,7 @@
     <Compile Include="Contracts\HeartbeatMonitoring\EndpointDetected.cs" />
     <Compile Include="HeartbeatMonitoring\HeartbeatStatus.cs" />
     <Compile Include="HeartbeatMonitoring\RegisterHeartbeatMonitor.cs" />
-    <Compile Include="HistoricalEventsTracking\MessageFailedHandler.cs" />
+    <Compile Include="HistoricalEventsTracking\PersistEventHandler.cs" />
     <Compile Include="Infrastructure\Installers\HttpListenerInstaller.cs" />
     <Compile Include="Infrastructure\SignalR\Configure.cs" />
     <Compile Include="Infrastructure\SignalR\CustomSignalRContractResolverBecauseOfIssue500InSignalR.cs" />
