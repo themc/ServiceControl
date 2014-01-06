@@ -56,6 +56,8 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AAA\FuncBuilder.cs" />
+    <Compile Include="AAA\Sample.cs" />
     <Compile Include="CompositeViews\MessagesViewTests.cs" />
     <Compile Include="Infrastructure\RavenDB\Indexes\InMemoryStoreBuilder.cs" />
     <Compile Include="Plugins\DebugSession\DebugSessionTests.cs" />
