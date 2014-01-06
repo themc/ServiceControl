@@ -5,16 +5,15 @@
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.Persistence.InMemory.SagaPersister;
-    using NServiceBus.Pipeline;
     using NServiceBus.Pipeline.Contexts;
+    using NServiceBus.Saga;
     using NServiceBus.Sagas;
     using NServiceBus.Unicast;
     using NServiceBus.Unicast.Behaviors;
     using NServiceBus.Unicast.Messages;
     using NUnit.Framework;
-    using Raven.Database.Linq.PrivateExtensions;
 
-    public class SagaSpecification<T>
+    public class SagaSpecification<T> where T:ISaga
     {
         public SagaSpecification()
         {
@@ -33,16 +32,19 @@
 
         void ApplyMessageToSaga(object message)
         {
+            HandlerInvocationCache.CacheMethodForHandler(typeof(T),message.GetType());
             var metadata = new MessageMetadata {MessageType = message.GetType()};
+
+            var instance = CreateSagaInstance();
 
             var logicalMessage = new LogicalMessage(metadata, message, new Dictionary<string, string>());
             var messageHandler = new MessageHandler
             {
-                Instance = Activator.CreateInstance<T>(),
-            };
+                Instance = instance,
 
-            //todo removed when the core has been refactored
-            messageHandler.Invocation = (handlerInstance, m) => HandlerInvocationCache.InvokeHandle(handlerInstance, m);
+                //todo removed when the core has been refactored
+                Invocation = (handlerInstance, m) => HandlerInvocationCache.InvokeHandle(handlerInstance, m)
+            };
 
             context = new HandlerInvocationContext(new ReceiveLogicalMessageContext(new RootContext(builder), logicalMessage),messageHandler );
 
@@ -70,6 +72,14 @@
 
 
             sagaActivated = context.TryGet(out sagaInstance);
+        }
+
+        T CreateSagaInstance()
+        {
+            var instance = Activator.CreateInstance<T>();
+
+            instance.Bus = new SpyBus(capturedMessages);
+            return instance;
         }
 
         public void AssertIsStarted()
@@ -101,10 +111,12 @@
         }
 
         MessageMetadata metadata;
+        readonly object message;
 
-        public CapturedMessage(MessageMetadata metadata)
+        public CapturedMessage(MessageMetadata metadata, object message)
         {
             this.metadata = metadata;
+            this.message = message;
         }
     }
 }

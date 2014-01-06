@@ -25,7 +25,7 @@
 
             sagaToTest.When(new StartMessage());
 
-            sagaToTest.AssertResultingMessages(messages => messages.Any(m=>m.OfType<StartMessage>()));
+            sagaToTest.AssertResultingMessages(messages => messages.Any(m=>m.OfType<MessageSentBySaga>()));
         }
 
         class MySaga : Saga<MySagaData>,IAmStartedByMessages<StartMessage>
@@ -53,7 +53,7 @@
 
     public class Test
     {
-        public static SagaSpecification<T> Saga<T>()
+        public static SagaSpecification<T> Saga<T>() where T:ISaga
         {
             return new SagaSpecification<T>();
         }

@@ -59,6 +59,7 @@
     <Compile Include="AAA\FuncBuilder.cs" />
     <Compile Include="AAA\SagaSpecification.cs" />
     <Compile Include="AAA\Sample.cs" />
+    <Compile Include="AAA\SpyBus.cs" />
     <Compile Include="CompositeViews\MessagesViewTests.cs" />
     <Compile Include="Infrastructure\RavenDB\Indexes\InMemoryStoreBuilder.cs" />
     <Compile Include="Plugins\DebugSession\DebugSessionTests.cs" />
