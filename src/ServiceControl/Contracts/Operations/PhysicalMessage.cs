@@ -10,7 +10,12 @@
             MessageId = message.Id;
             Headers = message.Headers;
             Body = message.Body;
-            ReplyToAddress = message.ReplyToAddress.ToString();
+            
+            if (message.ReplyToAddress != null)
+            {
+                ReplyToAddress = message.ReplyToAddress.ToString();      
+            }
+
             CorrelationId = message.CorrelationId;
             Recoverable = message.Recoverable;
             MessageIntent = message.MessageIntent;

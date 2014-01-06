@@ -68,23 +68,25 @@
         }
 
 
-        public void Given(object message)
+        public List<CapturedMessage> Given(object message)
         {
-            ApplyMessageToSaga(message);
+            return ApplyMessageToSaga(message);
         }
 
-        public void When<TMessage>(TMessage message)
+        public List<CapturedMessage> When<TMessage>(TMessage message)
         {
-            ApplyMessageToSaga(message);
+            return ApplyMessageToSaga(message);
         }
 
-        void ApplyMessageToSaga(object message)
+        List<CapturedMessage> ApplyMessageToSaga(object message)
         {
             HandlerInvocationCache.CacheMethodForHandler(typeof(T), message.GetType());
             var metadata = new MessageMetadata { MessageType = message.GetType() };
+            var messageResultingFromThisInteraction = new List<CapturedMessage>();
+            var instance = Activator.CreateInstance<T>();
 
-            var instance = CreateSagaInstance();
-
+            instance.Bus = new SpyBus(messageResultingFromThisInteraction);
+         
             var logicalMessage = new LogicalMessage(metadata, message, new Dictionary<string, string>());
             var messageHandler = new MessageHandler
             {
@@ -125,16 +127,12 @@
                 }
             });
 
-            
+            capturedMessages.AddRange(messageResultingFromThisInteraction);
+
+            return messageResultingFromThisInteraction;
+
         }
 
-        T CreateSagaInstance()
-        {
-            var instance = Activator.CreateInstance<T>();
-
-            instance.Bus = new SpyBus(capturedMessages);
-            return instance;
-        }
 
         public void AssertIsStarted()
         {
@@ -153,11 +151,7 @@
 
         bool sagaActivated;
 
-        public void AssertResultingMessages(Predicate<List<CapturedMessage>> predicate)
-        {
-            Assert.True(predicate(capturedMessages));
-        }
-
+        
         List<CapturedMessage> capturedMessages = new List<CapturedMessage>();
     }
 
@@ -168,13 +162,20 @@
             return typeof(T) == metadata.MessageType;
         }
 
-        MessageMetadata metadata;
-        readonly object message;
-
-        public CapturedMessage(MessageMetadata metadata, object message)
+        public CapturedMessage(MessageMetadata metadata, object message, MessageIntentEnum messageIntent)
         {
             this.metadata = metadata;
             this.message = message;
+            this.messageIntent = messageIntent;
         }
+
+        public T Instance<T>()
+        {
+            return (T) message;
+        }
+    
+        MessageMetadata metadata;
+        readonly object message;
+        readonly MessageIntentEnum messageIntent;
     }
 }

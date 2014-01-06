@@ -24,9 +24,9 @@
         {
             var sagaToTest = Test.Saga<MySaga>();
 
-            sagaToTest.When(new StartMessage());
+            var resultingMessages = sagaToTest.When(new StartMessage());
 
-            sagaToTest.AssertResultingMessages(messages => messages.Any(m=>m.OfType<MessageSentBySaga>()));
+            Assert.NotNull(resultingMessages.Single(c => c.OfType<MessageSentBySaga>()));
         }
 
         [Test]
@@ -41,12 +41,12 @@
                 IdToCorrelateOn = correlationId
             });
 
-            sagaToTest.When(new MessageThatCorrelatesToSaga
+            var resultingMessages= sagaToTest.When(new MessageThatCorrelatesToSaga
             {
                 IdToCorrelateOn = correlationId
             });
 
-            sagaToTest.AssertResultingMessages(messages => messages.Any(m => m.OfType<MessageSentAsAResultOfTheMessageBeingCorrelated>()));
+            Assert.NotNull(resultingMessages.Single(c => c.OfType<MessageSentAsAResultOfTheMessageBeingCorrelated>()));
         }
 
 

@@ -65,6 +65,10 @@
 
         public void Handle(RetryMessage message)
         {
+            if (Data.Resolved)
+            {
+                return;
+            }
             //do not allow retries if we have other retries in progress
             if (Data.RetryAttempts.Any(a => !a.Completed))
             {

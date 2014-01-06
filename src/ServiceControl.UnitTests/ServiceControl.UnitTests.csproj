@@ -62,6 +62,7 @@
     <Compile Include="AAA\SpyBus.cs" />
     <Compile Include="CompositeViews\MessagesViewTests.cs" />
     <Compile Include="Infrastructure\RavenDB\Indexes\InMemoryStoreBuilder.cs" />
+    <Compile Include="MessageFailureTests\When_retrying_a_already_resolved_message.cs" />
     <Compile Include="Plugins\DebugSession\DebugSessionTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

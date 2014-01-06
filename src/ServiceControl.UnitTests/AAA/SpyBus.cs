@@ -47,7 +47,11 @@ namespace ServiceControl.UnitTests.AAA
 
         public void Publish<T>(Action<T> messageConstructor)
         {
-            throw new NotImplementedException();
+            //todo: support interfaces
+            var instance = Activator.CreateInstance<T>();
+
+            Capture(instance,typeof(T))
+            ;
         }
 
         public void Subscribe(Type messageType)
@@ -87,7 +91,7 @@ namespace ServiceControl.UnitTests.AAA
 
         public ICallback SendLocal(object message)
         {
-            throw new NotImplementedException();
+            return Capture(message, message.GetType());
         }
 
         public ICallback SendLocal<T>(Action<T> messageConstructor)
@@ -102,14 +106,14 @@ namespace ServiceControl.UnitTests.AAA
 
         public ICallback Send(object message)
         {
-            return CaptureSend(message,message.GetType());
+            return Capture(message,message.GetType());
         }
 
-        ICallback CaptureSend(object message,Type messageType)
+        ICallback Capture(object message,Type messageType,MessageIntentEnum intent = MessageIntentEnum.Send)
         {
             var metadata = new MessageMetadata { MessageType = messageType };
 
-            capturedMessages.Add(new CapturedMessage(metadata, message));
+            capturedMessages.Add(new CapturedMessage(metadata, message, intent));
 
             return new Callback(Guid.NewGuid().ToString());
         }
