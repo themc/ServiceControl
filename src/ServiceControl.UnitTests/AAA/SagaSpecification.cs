@@ -8,21 +8,69 @@
     using NServiceBus.Pipeline.Contexts;
     using NServiceBus.Saga;
     using NServiceBus.Sagas;
+    using NServiceBus.Sagas.Finders;
     using NServiceBus.Unicast;
     using NServiceBus.Unicast.Behaviors;
     using NServiceBus.Unicast.Messages;
     using NUnit.Framework;
 
-    public class SagaSpecification<T> where T:ISaga
+    public class SagaSpecification<T> where T : ISaga,new()
     {
         public SagaSpecification()
         {
+            Sagas.Clear();
+
+            sagaPersister = PersisterFactory();
+
+            builder.Register<ISagaPersister>(() => sagaPersister);
+
+            var sagaEntityType = GetSagaEntityType<T>();
+
+            var sagaHeaderIdFinder = typeof(HeaderSagaIdFinder<>).MakeGenericType(sagaEntityType);
+            builder.Register(sagaHeaderIdFinder);
+
             Sagas.ConfigureSaga(typeof(T));
+            Sagas.ConfigureFinder(sagaHeaderIdFinder);
+
+            if (Sagas.SagaEntityToMessageToPropertyLookup.ContainsKey(sagaEntityType))
+            {
+                foreach (var entityLookups in Sagas.SagaEntityToMessageToPropertyLookup[sagaEntityType])
+                {
+                    var propertyFinder = typeof(PropertySagaFinder<,>).MakeGenericType(sagaEntityType, entityLookups.Key);
+
+                    Sagas.ConfigureFinder(propertyFinder);
+
+                    var propertyLookups = entityLookups.Value;
+
+                    var finder = Activator.CreateInstance(propertyFinder);
+                    propertyFinder.GetProperty("SagaProperty").SetValue(finder, propertyLookups.Key,null);
+                    propertyFinder.GetProperty("MessageProperty").SetValue(finder, propertyLookups.Value,null);
+                    builder.Register(propertyFinder, () => finder);
+                }
+            }
+
         }
+
+        static Type GetSagaEntityType<T>() where T : new()
+        {
+            var sagaType = typeof(T);
+
+
+            var args = sagaType.BaseType.GetGenericArguments();
+            foreach (var type in args)
+            {
+                if (typeof(IContainSagaData).IsAssignableFrom(type))
+                {
+                    return type;
+                }
+            }
+            return null;
+        }
+
 
         public void Given(object message)
         {
-
+            ApplyMessageToSaga(message);
         }
 
         public void When<TMessage>(TMessage message)
@@ -32,8 +80,8 @@
 
         void ApplyMessageToSaga(object message)
         {
-            HandlerInvocationCache.CacheMethodForHandler(typeof(T),message.GetType());
-            var metadata = new MessageMetadata {MessageType = message.GetType()};
+            HandlerInvocationCache.CacheMethodForHandler(typeof(T), message.GetType());
+            var metadata = new MessageMetadata { MessageType = message.GetType() };
 
             var instance = CreateSagaInstance();
 
@@ -46,11 +94,11 @@
                 Invocation = (handlerInstance, m) => HandlerInvocationCache.InvokeHandle(handlerInstance, m)
             };
 
-            context = new HandlerInvocationContext(new ReceiveLogicalMessageContext(new RootContext(builder), logicalMessage),messageHandler );
+            context = new HandlerInvocationContext(new ReceiveLogicalMessageContext(new RootContext(builder), logicalMessage), messageHandler);
 
             var sagaPersistenceBehavior = new SagaPersistenceBehavior
             {
-                SagaPersister = new InMemorySagaPersister()
+                SagaPersister = sagaPersister
             };
 
             //todo: removed when core has been patched to not use Headers.GetMessageHeader
@@ -62,16 +110,22 @@
 
                 return result;
             };
-            
+
             //load saga
-            sagaPersistenceBehavior.Invoke(context, () => { });
+            sagaPersistenceBehavior.Invoke(context, () =>
+            {
+                var handlerInvocation = new InvokeHandlersBehavior();
 
-            var handlerInvocation = new InvokeHandlersBehavior();
+                sagaActivated = context.TryGet(out sagaInstance);
 
-            handlerInvocation.Invoke(new HandlerInvocationContext(context,messageHandler),()=>{});
+                //only pass the message to the saga if it was actually found
+                if (sagaInstance != null && !sagaInstance.NotFound)
+                {
+                    handlerInvocation.Invoke(new HandlerInvocationContext(context, messageHandler), () => { });
+                }
+            });
 
-
-            sagaActivated = context.TryGet(out sagaInstance);
+            
         }
 
         T CreateSagaInstance()
@@ -86,6 +140,10 @@
         {
             Assert.True(sagaActivated && !sagaInstance.NotFound);
         }
+
+        ISagaPersister sagaPersister;
+
+        public Func<ISagaPersister> PersisterFactory = () => new InMemorySagaPersister();
 
         HandlerInvocationContext context;
 
